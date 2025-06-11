@@ -433,8 +433,8 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
 
                     CUdevice device;
                     CUresult result_a = cuCtxGetDevice(&device);
-                    if (result_a != CUDA_SUCCESS) {
-                        std::cerr << "cuDeviceGet failed: " << result << "\n";
+                    if (result_a != 0) {
+                        std::cerr << "cuCtxGetDevice failed: " << result << "\n";
                         exit(1);
                     }
 
