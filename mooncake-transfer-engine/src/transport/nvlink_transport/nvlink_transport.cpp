@@ -431,18 +431,25 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                         return -1;
                     }
 
-                    CUdevice device;
-                    CUresult result_a = cuCtxGetDevice(&device);
-                    if (result_a != 0) {
-                        std::cerr << "cuCtxGetDevice failed: " << result << "\n";
+                    CUdevice currentDev;
+                    int cudaDev;
+                    cudaError_t err = cudaGetDevice(&cudaDev);
+                    if (err != cudaSuccess) {
+                        LOG(ERROR) << "NvlinkTransport: cudaGetDevice failed: "
+                                   << cudaGetErrorString(err);
+                        exit(1);
+                    }
+                    CUresult result = cuDeviceGet(&currentDev, cudaDev);
+                    if (result != CUDA_SUCCESS) {
+                        LOG(ERROR) << "NvlinkTransport: cuDeviceGet failed: " << result;
                         exit(1);
                     }
 
                     CUmemAccessDesc accessDesc = {};
                     accessDesc.flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
                     accessDesc.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
-                    LOG(ERROR) << "hack location.id change!!! device="<<device;
-                    accessDesc.location.id = device;
+                    LOG(ERROR) << "hack location.id change!!! currentDev="<<currentDev;
+                    accessDesc.location.id = currentDev;
                     result = cuMemSetAccess((CUdeviceptr)shm_addr, entry.length,
                                             &accessDesc, 1);
                     if (result != CUDA_SUCCESS) {
