@@ -34,6 +34,10 @@
 #include "transfer_metadata.h"
 #include "transport/transport.h"
 
+std::string vectorToString(const std::vector<unsigned char>& vec) {
+    return std::string(vec.begin(), vec.end());
+}
+
 namespace mooncake {
 static bool supportFabricMem() {
     if (getenv("MC_USE_NVLINK_IPC")) return false;
@@ -338,7 +342,7 @@ int NvlinkTransport::registerLocalMemory(void *addr, size_t length,
             shm_name_arr +=
                 serializeBinaryData(&export_handle, sizeof(CUmemFabricHandle));
         }
-        LOG(ERROR) << "hi NvlinkTransport::registerLocalMemory shm_name_arr=" << shm_name_arr;
+        LOG(ERROR) << "hi NvlinkTransport::registerLocalMemory shm_name_arr=" << vectorToString(shm_name_arr);
 
         (void)remote_accessible;
         BufferDesc desc;
@@ -388,7 +392,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
             if (!remap_entries_.count(entry.addr)) {
                 std::vector<unsigned char> output_buffer_arr;
                 deserializeBinaryData(entry.shm_name, output_buffer_arr);
-                LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress output_buffer_arr=" << output_buffer_arr;
+                LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress output_buffer_arr=" << vectorToString(output_buffer_arr);
 
                 const int NUM_REPEAT = 200;
                 std::random_device dev;
@@ -400,7 +404,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     output_buffer_arr.begin() + (chosen_index * sizeof(CUmemFabricHandle)),
                     output_buffer_arr.begin() + ((chosen_index+1) * sizeof(CUmemFabricHandle)),
                 );
-                LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress chosen_index=" << chosen_index << "output_buffer=" << output_buffer;
+                LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress chosen_index=" << chosen_index << "output_buffer=" << vectorToString(output_buffer);
 //                std::vector<unsigned char> output_buffer;
 //                deserializeBinaryData(entry.shm_name, output_buffer);
 
