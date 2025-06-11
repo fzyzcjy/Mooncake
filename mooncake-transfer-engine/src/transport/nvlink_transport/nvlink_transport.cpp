@@ -136,10 +136,12 @@ Status NvlinkTransport::submitTransfer(
             cudaError_t err = cudaMemcpy(slice->source_addr, (void *)slice->local.dest_addr,
                        slice->length, cudaMemcpyDefault);
             if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+            LOG(ERROR) << "hi cudaMemcpy good";
         } else {
             cudaError_t err = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                        slice->length, cudaMemcpyDefault);
             if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+            LOG(ERROR) << "hi cudaMemcpy good";
         }
         slice->markSuccess();
     }
@@ -206,10 +208,12 @@ Status NvlinkTransport::submitTransferTask(
             cudaError_t = cudaMemcpy(slice->source_addr, (void *)slice->local.dest_addr,
                        slice->length, cudaMemcpyDefault);
             if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+            LOG(ERROR) << "hi cudaMemcpy good";
        } else {
             cudaError_t = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                        slice->length, cudaMemcpyDefault);
             if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+            LOG(ERROR) << "hi cudaMemcpy good";
         }
         slice->markSuccess();
     }
