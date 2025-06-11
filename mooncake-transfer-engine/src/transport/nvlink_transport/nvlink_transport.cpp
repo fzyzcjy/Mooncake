@@ -402,7 +402,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                 int chosen_index = distribution(rng);
                 std::vector<unsigned char> output_buffer(
                     output_buffer_arr.begin() + (chosen_index * sizeof(CUmemFabricHandle)),
-                    output_buffer_arr.begin() + ((chosen_index+1) * sizeof(CUmemFabricHandle)),
+                    output_buffer_arr.begin() + ((chosen_index+1) * sizeof(CUmemFabricHandle))
                 );
                 LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress chosen_index=" << chosen_index << "output_buffer=" << vectorToString(output_buffer);
 //                std::vector<unsigned char> output_buffer;
