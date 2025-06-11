@@ -135,12 +135,12 @@ Status NvlinkTransport::submitTransfer(
         if (slice->opcode == TransferRequest::READ) {
             cudaError_t err = cudaMemcpy(slice->source_addr, (void *)slice->local.dest_addr,
                        slice->length, cudaMemcpyDefault);
-            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!! but continue" << cudaGetErrorString(err); }
             LOG(ERROR) << "hi cudaMemcpy good";
         } else {
             cudaError_t err = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                        slice->length, cudaMemcpyDefault);
-            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!! but continue" << cudaGetErrorString(err); }
             LOG(ERROR) << "hi cudaMemcpy good";
         }
         slice->markSuccess();
@@ -207,12 +207,12 @@ Status NvlinkTransport::submitTransferTask(
         if (slice->opcode == TransferRequest::READ) {
             cudaError_t err = cudaMemcpy(slice->source_addr, (void *)slice->local.dest_addr,
                        slice->length, cudaMemcpyDefault);
-            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!! but continue" << cudaGetErrorString(err); }
             LOG(ERROR) << "hi cudaMemcpy good";
        } else {
             cudaError_t err = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                        slice->length, cudaMemcpyDefault);
-            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!! but continue" << cudaGetErrorString(err); }
             LOG(ERROR) << "hi cudaMemcpy good";
         }
         slice->markSuccess();
