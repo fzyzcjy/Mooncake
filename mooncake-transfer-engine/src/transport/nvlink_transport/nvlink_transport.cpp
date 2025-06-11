@@ -132,12 +132,15 @@ Status NvlinkTransport::submitTransfer(
             << " slice->local.dest_addr=" << slice->local.dest_addr
             << " slice->length=" << slice->length
             << " slice->opcode=" << slice->opcode;
-        if (slice->opcode == TransferRequest::READ)
-            cudaMemcpy(slice->source_addr, (void *)slice->local.dest_addr,
+        if (slice->opcode == TransferRequest::READ) {
+            cudaError_t err = cudaMemcpy(slice->source_addr, (void *)slice->local.dest_addr,
                        slice->length, cudaMemcpyDefault);
-        else
-            cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
+            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+        } else {
+            cudaError_t err = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                        slice->length, cudaMemcpyDefault);
+            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+        }
         slice->markSuccess();
     }
 
@@ -199,12 +202,15 @@ Status NvlinkTransport::submitTransferTask(
             << " slice->local.dest_addr=" << slice->local.dest_addr
             << " slice->length=" << slice->length
             << " slice->opcode=" << slice->opcode;
-        if (slice->opcode == TransferRequest::READ)
-            cudaMemcpy(slice->source_addr, (void *)slice->local.dest_addr,
+        if (slice->opcode == TransferRequest::READ) {
+            cudaError_t = cudaMemcpy(slice->source_addr, (void *)slice->local.dest_addr,
                        slice->length, cudaMemcpyDefault);
-        else
-            cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
+            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+       } else {
+            cudaError_t = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                        slice->length, cudaMemcpyDefault);
+            if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!!" << cudaGetErrorString(err); exit(1); }
+        }
         slice->markSuccess();
     }
     return Status::OK();
