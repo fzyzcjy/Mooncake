@@ -481,17 +481,24 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     shm_entry.length = length;
                     remap_entries_[entry.addr] = shm_entry;
 
-                    {
-                        uint8_t *dummy_src_addr;
-                        uint8_t *shm_addr_with_offset = ((uint8_t*)shm_addr) + 0x3a80;
-                        cudaError_t err_a = cudaMalloc(&dummy_src_addr, 5760);
-                        LOG(ERROR) << "hi cudaMalloc dummy_src_addr=" << dummy_src_addr << " err_a" << cudaGetErrorString(err_a);
-                        cudaError_t err_b = cudaMemcpy(shm_addr_with_offset, dummy_src_addr, 5760, cudaMemcpyDefault);
-                        LOG(ERROR) << "hi cudaMemcpy quick test after setaccess"
-                            << " dummy_src_addr=" << dummy_src_addr
-                            << " shm_addr_with_offset=" << shm_addr_with_offset
-                             << " err_b=" << cudaGetErrorString(err_b);
-                    }
+                    LOG(ERROR) << "hi relocateSharedMemoryAddress "
+                        << " shm_entry.shm_addr=" << shm_entry.shm_addr
+                        << " shm_entry.length=" << shm_entry.length
+                        << " entry.addr=" << entry.addr
+                        << " entry.length=" << entry.length
+                        ;
+
+//                    {
+//                        uint8_t *dummy_src_addr;
+//                        uint8_t *shm_addr_with_offset = ((uint8_t*)shm_addr) + 0x3a80;
+//                        cudaError_t err_a = cudaMalloc(&dummy_src_addr, 5760);
+//                        LOG(ERROR) << "hi cudaMalloc dummy_src_addr=" << dummy_src_addr << " err_a" << cudaGetErrorString(err_a);
+//                        cudaError_t err_b = cudaMemcpy(shm_addr_with_offset, dummy_src_addr, 5760, cudaMemcpyDefault);
+//                        LOG(ERROR) << "hi cudaMemcpy quick test after setaccess"
+//                            << " dummy_src_addr=" << dummy_src_addr
+//                            << " shm_addr_with_offset=" << shm_addr_with_offset
+//                             << " err_b=" << cudaGetErrorString(err_b);
+//                    }
 
                 } else {
                     LOG(ERROR) << "Mismatched NVLink data transfer method";
