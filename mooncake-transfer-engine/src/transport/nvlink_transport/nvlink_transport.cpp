@@ -342,7 +342,7 @@ int NvlinkTransport::registerLocalMemory(void *addr, size_t length,
             shm_name_arr +=
                 serializeBinaryData(&export_handle, sizeof(CUmemFabricHandle));
         }
-        LOG(ERROR) << "hi NvlinkTransport::registerLocalMemory shm_name_arr=" << vectorToString(shm_name_arr);
+        LOG(ERROR) << "hi NvlinkTransport::registerLocalMemory shm_name_arr=" << shm_name_arr;
 
         (void)remote_accessible;
         BufferDesc desc;
