@@ -210,6 +210,19 @@ Status NvlinkTransport::submitTransferTask(
             if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!! but continue" << cudaGetErrorString(err); }
             LOG(ERROR) << "hi cudaMemcpy good";
        } else {
+
+           {
+                uint8_t *dummy_addr;
+                cudaError_t err = cudaMalloc(&dummy_addr, 1000000);
+                LOG(ERROR) << "hi submitTransferTask extra test :: cudaMalloc dummy_addr=" << dummy_addr << " err" << cudaGetErrorString(err);
+
+                err = cudaMemcpy((void *)slice->local.dest_addr, dummy_addr, slice->length, cudaMemcpyDefault);
+                LOG(ERROR) << "hi submitTransferTask extra test :: copy 1" << " err" << cudaGetErrorString(err);
+
+                err = cudaMemcpy(dummy_addr, slice->source_addr, slice->length, cudaMemcpyDefault);
+                LOG(ERROR) << "hi submitTransferTask extra test :: copy 2" << " err" << cudaGetErrorString(err);
+           }
+
             cudaError_t err = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                        slice->length, cudaMemcpyDefault);
             if (err != cudaSuccess) { LOG(ERROR) << "cudaMemcpyError!!! but continue" << cudaGetErrorString(err); }
@@ -469,13 +482,14 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     remap_entries_[entry.addr] = shm_entry;
 
                     {
-                        float *dummy_addr;
-                        cudaError_t err_a = cudaMalloc(&dummy_addr, 1024);
-                        LOG(ERROR) << "hi cudaMalloc dummy_addr=" << dummy_addr << " err_a" << cudaGetErrorString(err_a);
-                        cudaError_t err_b = cudaMemcpy(shm_addr, dummy_addr, 1024, cudaMemcpyDefault);
+                        uint8_t *dummy_src_addr;
+                        uint8_t *shm_addr_with_offset = shm_addr + 0x3a80;
+                        cudaError_t err_a = cudaMalloc(&dummy_src_addr, 5760);
+                        LOG(ERROR) << "hi cudaMalloc dummy_src_addr=" << dummy_src_addr << " err_a" << cudaGetErrorString(err_a);
+                        cudaError_t err_b = cudaMemcpy(shm_addr_with_offset, dummy_src_addr, 5760, cudaMemcpyDefault);
                         LOG(ERROR) << "hi cudaMemcpy quick test after setaccess"
-                            << " dummy_addr=" << dummy_addr
-                            << " shm_addr=" << shm_addr
+                            << " dummy_src_addr=" << dummy_src_addr
+                            << " shm_addr_with_offset=" << shm_addr_with_offset
                              << " err_b=" << cudaGetErrorString(err_b);
                     }
 
