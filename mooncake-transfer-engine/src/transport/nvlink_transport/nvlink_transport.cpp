@@ -434,7 +434,8 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     CUmemAccessDesc accessDesc = {};
                     accessDesc.flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
                     accessDesc.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
-                    accessDesc.location.id = 0;
+                    LOG(ERROR) << "hack location.id change!!!";
+                    accessDesc.location.id = device;
                     result = cuMemSetAccess((CUdeviceptr)shm_addr, entry.length,
                                             &accessDesc, 1);
                     if (result != CUDA_SUCCESS) {
