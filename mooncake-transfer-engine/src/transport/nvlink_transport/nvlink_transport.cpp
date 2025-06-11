@@ -211,17 +211,17 @@ Status NvlinkTransport::submitTransferTask(
             LOG(ERROR) << "hi cudaMemcpy good";
        } else {
 
-           {
-                uint8_t *dummy_addr;
-                cudaError_t err = cudaMalloc(&dummy_addr, 1000000);
-                LOG(ERROR) << "hi submitTransferTask extra test :: cudaMalloc dummy_addr=" << dummy_addr << " err" << cudaGetErrorString(err);
-
-                err = cudaMemcpy((void *)slice->local.dest_addr, dummy_addr, slice->length, cudaMemcpyDefault);
-                LOG(ERROR) << "hi submitTransferTask extra test :: copy 1" << " err" << cudaGetErrorString(err);
-
-                err = cudaMemcpy(dummy_addr, slice->source_addr, slice->length, cudaMemcpyDefault);
-                LOG(ERROR) << "hi submitTransferTask extra test :: copy 2" << " err" << cudaGetErrorString(err);
-           }
+//           {
+//                uint8_t *dummy_addr;
+//                cudaError_t err = cudaMalloc(&dummy_addr, 1000000);
+//                LOG(ERROR) << "hi submitTransferTask extra test :: cudaMalloc dummy_addr=" << dummy_addr << " err" << cudaGetErrorString(err);
+//
+//                err = cudaMemcpy((void *)slice->local.dest_addr, dummy_addr, slice->length, cudaMemcpyDefault);
+//                LOG(ERROR) << "hi submitTransferTask extra test :: copy 1" << " err" << cudaGetErrorString(err);
+//
+//                err = cudaMemcpy(dummy_addr, slice->source_addr, slice->length, cudaMemcpyDefault);
+//                LOG(ERROR) << "hi submitTransferTask extra test :: copy 2" << " err" << cudaGetErrorString(err);
+//           }
 
             cudaError_t err = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                        slice->length, cudaMemcpyDefault);
