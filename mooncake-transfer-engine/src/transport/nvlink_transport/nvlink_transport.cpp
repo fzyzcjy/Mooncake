@@ -433,15 +433,15 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
 
                     CUdevice currentDev;
                     int cudaDev;
-                    cudaError_t err = cudaGetDevice(&cudaDev);
-                    if (err != cudaSuccess) {
+                    cudaError_t err_a = cudaGetDevice(&cudaDev);
+                    if (err_a != cudaSuccess) {
                         LOG(ERROR) << "NvlinkTransport: cudaGetDevice failed: "
-                                   << cudaGetErrorString(err);
+                                   << cudaGetErrorString(err_a);
                         exit(1);
                     }
-                    CUresult result = cuDeviceGet(&currentDev, cudaDev);
-                    if (result != CUDA_SUCCESS) {
-                        LOG(ERROR) << "NvlinkTransport: cuDeviceGet failed: " << result;
+                    CUresult result_a = cuDeviceGet(&currentDev, cudaDev);
+                    if (result_a != CUDA_SUCCESS) {
+                        LOG(ERROR) << "NvlinkTransport: cuDeviceGet failed: " << result_a;
                         exit(1);
                     }
 
