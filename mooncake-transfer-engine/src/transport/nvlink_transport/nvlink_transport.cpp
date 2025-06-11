@@ -483,7 +483,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
 
                     {
                         uint8_t *dummy_src_addr;
-                        uint8_t *shm_addr_with_offset = shm_addr + 0x3a80;
+                        uint8_t *shm_addr_with_offset = ((uint8_t*)shm_addr) + 0x3a80;
                         cudaError_t err_a = cudaMalloc(&dummy_src_addr, 5760);
                         LOG(ERROR) << "hi cudaMalloc dummy_src_addr=" << dummy_src_addr << " err_a" << cudaGetErrorString(err_a);
                         cudaError_t err_b = cudaMemcpy(shm_addr_with_offset, dummy_src_addr, 5760, cudaMemcpyDefault);
