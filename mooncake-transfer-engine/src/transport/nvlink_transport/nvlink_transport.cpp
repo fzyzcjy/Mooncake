@@ -447,7 +447,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
 //                    CUdevice currentDev = 2; // bad hack
 
                     for(int index = 0; index < 4; ++index) {
-                        CUdevice currentDev = index; // bad hack
+                        CUdevice currentDev = (index+2)%4; // bad hack
 
                         CUmemAccessDesc accessDesc = {};
                         accessDesc.flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
