@@ -444,20 +444,25 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
 //                        LOG(ERROR) << "NvlinkTransport: cuDeviceGet failed: " << result_a;
 //                        exit(1);
 //                    }
-                    CUdevice currentDev = 2; // bad hack
+//                    CUdevice currentDev = 2; // bad hack
 
-                    CUmemAccessDesc accessDesc = {};
-                    accessDesc.flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
-                    accessDesc.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
-                    LOG(ERROR) << "hack location.id change!!! currentDev="<<currentDev;
-                    accessDesc.location.id = currentDev;
-                    result = cuMemSetAccess((CUdeviceptr)shm_addr, entry.length,
-                                            &accessDesc, 1);
-                    if (result != CUDA_SUCCESS) {
-                        LOG(ERROR) << "NvlinkTransport: cuMemSetAccess failed: "
-                                   << result;
-                        return -1;
+                    for(int index = 0; index < 4; ++index) {
+                        CUdevice currentDev = index; // bad hack
+
+                        CUmemAccessDesc accessDesc = {};
+                        accessDesc.flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
+                        accessDesc.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
+                        LOG(ERROR) << "hack location.id change!!! currentDev="<<currentDev;
+                        accessDesc.location.id = currentDev;
+                        result = cuMemSetAccess((CUdeviceptr)shm_addr, entry.length,
+                                                &accessDesc, 1);
+                        if (result != CUDA_SUCCESS) {
+                            LOG(ERROR) << "NvlinkTransport: cuMemSetAccess failed: "
+                                       << result;
+                            return -1;
+                        }
                     }
+
                     OpenedShmEntry shm_entry;
                     shm_entry.shm_addr = shm_addr;
                     shm_entry.length = length;
