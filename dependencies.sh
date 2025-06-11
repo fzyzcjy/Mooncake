@@ -155,6 +155,10 @@ check_success "Failed to clone yalantinglibs"
 cd yalantinglibs
 check_success "Failed to change to yalantinglibs directory"
 
+echo "HACK!!! checkout yalantinglibs commit"
+git checkout 81e6f75c8cd33f11349c82b274d6757ca595bc48
+check_success "hi fail"
+
 mkdir -p build
 check_success "Failed to create build directory"
 
