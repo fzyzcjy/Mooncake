@@ -467,6 +467,18 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     shm_entry.shm_addr = shm_addr;
                     shm_entry.length = length;
                     remap_entries_[entry.addr] = shm_entry;
+
+                    {
+                        float *dummy_addr;
+                        cudaError_t err_a = cudaMalloc(&dummy_addr, 1024);
+                        LOG(ERROR) << "hi cudaMalloc dummy_addr=" << dummy_addr << " err_a" << cudaGetErrorString(err_a);
+                        cudaError_t err_b = cudaMemcpy(shm_addr, dummy_addr, 1024, cudaMemcpyDefault);
+                        LOG(ERROR) << "hi cudaMemcpy quick test after setaccess"
+                            << " dummy_addr=" << dummy_addr
+                            << " shm_addr=" << shm_addr
+                             << " err_b=" << cudaGetErrorString(err_b);
+                    }
+
                 } else {
                     LOG(ERROR) << "Mismatched NVLink data transfer method";
                     return -1;
