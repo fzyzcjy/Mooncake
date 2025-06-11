@@ -27,6 +27,7 @@
 #include <iomanip>
 #include <memory>
 #include <unistd.h>
+#include <random>
 
 #include "common.h"
 #include "transfer_engine.h"
@@ -266,6 +267,9 @@ int NvlinkTransport::registerLocalMemory(void *addr, size_t length,
         LOG(INFO) << "register memory: addr " << addr << ", length " << length;
     }
     if (!use_fabric_mem_) {
+        LOG(ERROR) << "should not see this branch???";
+        exit(1);
+
         cudaPointerAttributes attr;
         cudaError_t err = cudaPointerGetAttributes(&attr, addr);
         if (err != cudaSuccess) {
@@ -317,23 +321,34 @@ int NvlinkTransport::registerLocalMemory(void *addr, size_t length,
             return -1;
         }
 
-        CUmemFabricHandle export_handle;
-        result = cuMemExportToShareableHandle(&export_handle, handle,
-                                              CU_MEM_HANDLE_TYPE_FABRIC, 0);
-        if (result != CUDA_SUCCESS) {
-            LOG(ERROR)
-                << "NvlinkTransport: cuMemExportToShareableHandle failed: "
-                << result;
-            return -1;
+        // NOTE MODIFIED
+        const int NUM_REPEAT = 200;
+        std::string shm_name_arr;
+        for (int index = 0; index < NUM_REPEAT; ++index) {
+            CUmemFabricHandle export_handle;
+            result = cuMemExportToShareableHandle(&export_handle, handle,
+                                                  CU_MEM_HANDLE_TYPE_FABRIC, 0);
+            if (result != CUDA_SUCCESS) {
+                LOG(ERROR)
+                    << "NvlinkTransport: cuMemExportToShareableHandle failed: "
+                    << result;
+                return -1;
+            }
+
+            shm_name_arr +=
+                serializeBinaryData(&export_handle, sizeof(CUmemFabricHandle));
         }
+        LOG(ERROR) << "hi NvlinkTransport::registerLocalMemory shm_name_arr=" << shm_name_arr;
 
         (void)remote_accessible;
         BufferDesc desc;
         desc.addr = (uint64_t)real_addr; // (uint64_t)addr;
         desc.length = real_size; // length;
         desc.name = location;
-        desc.shm_name =
-            serializeBinaryData(&export_handle, sizeof(CUmemFabricHandle));
+        // NOTE MODIFIED
+        desc.shm_name = shm_name_arr;
+//        desc.shm_name =
+//            serializeBinaryData(&export_handle, sizeof(CUmemFabricHandle));
         return metadata_->addLocalMemoryBuffer(desc, true);
     }
 }
@@ -371,8 +386,24 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
             remap_lock_.unlockShared();
             RWSpinlock::WriteGuard lock_guard(remap_lock_);
             if (!remap_entries_.count(entry.addr)) {
-                std::vector<unsigned char> output_buffer;
-                deserializeBinaryData(entry.shm_name, output_buffer);
+                std::vector<unsigned char> output_buffer_arr;
+                deserializeBinaryData(entry.shm_name, output_buffer_arr);
+                LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress output_buffer_arr=" << output_buffer_arr;
+
+                const int NUM_REPEAT = 200;
+                std::random_device dev;
+                std::mt19937 rng(dev());
+                std::uniform_int_distribution<std::mt19937::result_type> distribution(0, NUM_REPEAT-1);
+
+                int chosen_index = distribution(rng);
+                std::vector<unsigned char> output_buffer(
+                    output_buffer_arr.begin() + (chosen_index * sizeof(CUmemFabricHandle)),
+                    output_buffer_arr.begin() + ((chosen_index+1) * sizeof(CUmemFabricHandle)),
+                );
+                LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress chosen_index=" << chosen_index << "output_buffer=" << output_buffer;
+//                std::vector<unsigned char> output_buffer;
+//                deserializeBinaryData(entry.shm_name, output_buffer);
+
                 if (output_buffer.size() == sizeof(cudaIpcMemHandle_t) &&
                     !use_fabric_mem_) {
                     cudaIpcMemHandle_t handle;
