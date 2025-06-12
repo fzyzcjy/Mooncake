@@ -463,7 +463,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     return -1;
                 }
             }
-            auto shm_addr = remap_entries_[std::make_tuple(target_id, entry.addr)].shm_addr;
+            auto shm_addr = remap_entries_[compute_remap_entries_key(target_id, entry.addr)].shm_addr;
             dest_addr = dest_addr - entry.addr + ((uint64_t)shm_addr);
             LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress END by branch-b "
                 << " dest_addr=" << dest_addr
