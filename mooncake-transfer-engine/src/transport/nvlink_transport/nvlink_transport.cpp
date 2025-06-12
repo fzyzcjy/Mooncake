@@ -76,6 +76,8 @@ NvlinkTransport::~NvlinkTransport() {
 int NvlinkTransport::install(std::string &local_server_name,
                              std::shared_ptr<TransferMetadata> metadata,
                              std::shared_ptr<Topology> topology) {
+    LOG(ERROR) << "hi NvlinkTransport::install local_server_name=" << local_server_name;
+
     metadata_ = metadata;
     local_server_name_ = local_server_name;
 
@@ -90,6 +92,8 @@ int NvlinkTransport::install(std::string &local_server_name,
 
 Status NvlinkTransport::submitTransfer(
     BatchID batch_id, const std::vector<TransferRequest> &entries) {
+    LOG(ERROR) << "hi NvlinkTransport::submitTransfer START";
+
     auto &batch_desc = *((BatchDesc *)(batch_id));
     if (batch_desc.task_list.size() + entries.size() > batch_desc.batch_size) {
         LOG(ERROR)
@@ -129,6 +133,7 @@ Status NvlinkTransport::submitTransfer(
         else
             err = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                              slice->length, cudaMemcpyDefault);
+        LOG(ERROR) << "hi submitTransfer cudaMemcpy err=" << err;
         if (err != cudaSuccess)
             slice->markFailed();
         else
@@ -167,6 +172,8 @@ Status NvlinkTransport::getTransferStatus(BatchID batch_id, size_t task_id,
 Status NvlinkTransport::submitTransferTask(
     const std::vector<TransferRequest *> &request_list,
     const std::vector<TransferTask *> &task_list) {
+    LOG(ERROR) << "hi NvlinkTransport::submitTransferTask START";
+
     for (size_t index = 0; index < request_list.size(); ++index) {
         auto &request = *request_list[index];
         auto &task = *task_list[index];
@@ -187,6 +194,13 @@ Status NvlinkTransport::submitTransferTask(
         slice->status = Slice::PENDING;
         task.slice_list.push_back(slice);
         __sync_fetch_and_add(&task.slice_count, 1);
+
+        LOG(ERROR) << "hi NvlinkTransport::submitTransferTask call cudaMemcpy "
+            << " slice->source_addr=" << slice->source_addr
+            << " slice->local.dest_addr=" << slice->local.dest_addr
+            << " slice->length=" << slice->length
+            << " slice->opcode=" << slice->opcode;
+
         cudaError_t err;
         if (slice->opcode == TransferRequest::READ)
             err = cudaMemcpy(slice->source_addr, (void *)slice->local.dest_addr,
@@ -194,6 +208,7 @@ Status NvlinkTransport::submitTransferTask(
         else
             err = cudaMemcpy((void *)slice->local.dest_addr, slice->source_addr,
                              slice->length, cudaMemcpyDefault);
+        LOG(ERROR) << "hi submitTransferTask cudaMemcpy err=" << err;
         if (err != cudaSuccess)
             slice->markFailed();
         else
@@ -246,6 +261,14 @@ int NvlinkTransport::registerLocalMemory(void *addr, size_t length,
                                          const std::string &location,
                                          bool remote_accessible,
                                          bool update_metadata) {
+    LOG(ERROR) << "hi NvlinkTransport::registerLocalMemory"
+        << " addr=" << addr
+        << " length=" << length
+        << " location=" << location
+        << " remote_accessible=" << remote_accessible
+        << " update_metadata=" << update_metadata
+        << " use_fabric_mem_=" << use_fabric_mem_;
+
     std::lock_guard<std::mutex> lock(register_mutex_);
     if (globalConfig().trace) {
         LOG(INFO) << "register memory: addr " << addr << ", length " << length;
@@ -323,12 +346,19 @@ int NvlinkTransport::registerLocalMemory(void *addr, size_t length,
 }
 
 int NvlinkTransport::unregisterLocalMemory(void *addr, bool update_metadata) {
+    LOG(ERROR) << "hi NvlinkTransport::unregisterLocalMemory"
+        << " addr=" << addr
+        << " update_metadata=" << update_metadata;
     return metadata_->removeLocalMemoryBuffer(addr, update_metadata);
 }
 
 int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                                                  uint64_t length,
                                                  uint64_t target_id) {
+    LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress START "
+        << " dest_addr=" << dest_addr
+        << " length=" << length
+        << " target_id=" << target_id;
     auto desc = metadata_->getSegmentDescByID(target_id);
     int index = 0;
     for (auto &entry : desc->buffers) {
@@ -339,6 +369,10 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                 auto shm_addr = remap_entries_[entry.addr].shm_addr;
                 remap_lock_.unlockShared();
                 dest_addr = dest_addr - entry.addr + ((uint64_t)shm_addr);
+                LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress END by branch-a "
+                    << " dest_addr=" << dest_addr
+                    << " entry.addr=" << entry.addr
+                    << " shm_addr=" << shm_addr;
                 return 0;
             }
             remap_lock_.unlockShared();
@@ -413,6 +447,12 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     shm_entry.shm_addr = shm_addr;
                     shm_entry.length = length;
                     remap_entries_[entry.addr] = shm_entry;
+
+                    LOG(ERROR) << "hi relocateSharedMemoryAddress "
+                        << " shm_entry.shm_addr=" << shm_entry.shm_addr
+                        << " shm_entry.length=" << shm_entry.length
+                        << " entry.addr=" << entry.addr
+                        << " entry.length=" << entry.length;
                 } else {
                     LOG(ERROR) << "Mismatched NVLink data transfer method";
                     return -1;
@@ -420,6 +460,10 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
             }
             auto shm_addr = remap_entries_[entry.addr].shm_addr;
             dest_addr = dest_addr - entry.addr + ((uint64_t)shm_addr);
+            LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress END by branch-b "
+                << " dest_addr=" << dest_addr
+                << " entry.addr=" << entry.addr
+                << " shm_addr=" << shm_addr;
             return 0;
         }
         index++;
@@ -432,6 +476,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
 int NvlinkTransport::registerLocalMemoryBatch(
     const std::vector<Transport::BufferEntry> &buffer_list,
     const std::string &location) {
+    LOG(ERROR) << "hi NvlinkTransport::registerLocalMemoryBatch";
     for (auto &buffer : buffer_list)
         registerLocalMemory(buffer.addr, buffer.length, location, true, false);
     return metadata_->updateLocalSegmentDesc();
@@ -439,11 +484,13 @@ int NvlinkTransport::registerLocalMemoryBatch(
 
 int NvlinkTransport::unregisterLocalMemoryBatch(
     const std::vector<void *> &addr_list) {
+    LOG(ERROR) << "hi NvlinkTransport::unregisterLocalMemoryBatch";
     for (auto &addr : addr_list) unregisterLocalMemory(addr, false);
     return metadata_->updateLocalSegmentDesc();
 }
 
 void *NvlinkTransport::allocatePinnedLocalMemory(size_t size) {
+    LOG(ERROR) << "hi NvlinkTransport::allocatePinnedLocalMemory size=" << size;
     if (!supportFabricMem()) {
         void *ptr = nullptr;
         cudaMalloc(&ptr, size);
@@ -528,6 +575,7 @@ void *NvlinkTransport::allocatePinnedLocalMemory(size_t size) {
 }
 
 void NvlinkTransport::freePinnedLocalMemory(void *ptr) {
+    LOG(ERROR) << "hi NvlinkTransport::freePinnedLocalMemory ptr=" << ptr;
     if (!supportFabricMem()) {
         cudaFree(ptr);
         return;
