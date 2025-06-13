@@ -12,6 +12,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <tuple>
 
 #include "topology.h"
 #include "transfer_metadata.h"
@@ -71,7 +72,7 @@ class NvlinkTransport : public Transport {
         uint64_t length;
     };
 
-    std::unordered_map<std::string, OpenedShmEntry> remap_entries_;
+    std::unordered_map<std::tuple<uint64_t, uint64_t>, OpenedShmEntry> remap_entries_;
     RWSpinlock remap_lock_;
     bool use_fabric_mem_;
 

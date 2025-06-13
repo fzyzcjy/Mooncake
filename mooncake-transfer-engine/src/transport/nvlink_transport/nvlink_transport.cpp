@@ -352,11 +352,6 @@ int NvlinkTransport::unregisterLocalMemory(void *addr, bool update_metadata) {
     return metadata_->removeLocalMemoryBuffer(addr, update_metadata);
 }
 
-// TODO bad hack, use tuple etc
-std::string compute_remap_entries_key(uint64_t target_id, uint64_t entry_addr) {
-    return std::to_string(target_id) + "----" + std::to_string(entry_addr);
-}
-
 int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                                                  uint64_t length,
                                                  uint64_t target_id) {
@@ -370,8 +365,8 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
         if (!entry.shm_name.empty() && entry.addr <= dest_addr &&
             dest_addr + length <= entry.addr + entry.length) {
             remap_lock_.lockShared();
-            if (remap_entries_.count(compute_remap_entries_key(target_id, entry.addr))) {
-                auto shm_addr = remap_entries_[compute_remap_entries_key(target_id, entry.addr)].shm_addr;
+            if (remap_entries_.count(std::make_tuple(target_id, entry.addr))) {
+                auto shm_addr = remap_entries_[std::make_tuple(target_id, entry.addr)].shm_addr;
                 remap_lock_.unlockShared();
                 dest_addr = dest_addr - entry.addr + ((uint64_t)shm_addr);
 //                LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress END by branch-a "
@@ -382,7 +377,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
             }
             remap_lock_.unlockShared();
             RWSpinlock::WriteGuard lock_guard(remap_lock_);
-            if (!remap_entries_.count(compute_remap_entries_key(target_id, entry.addr))) {
+            if (!remap_entries_.count(std::make_tuple(target_id, entry.addr))) {
                 std::vector<unsigned char> output_buffer;
                 deserializeBinaryData(entry.shm_name, output_buffer);
                 if (output_buffer.size() == sizeof(cudaIpcMemHandle_t) &&
@@ -401,7 +396,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     OpenedShmEntry shm_entry;
                     shm_entry.shm_addr = shm_addr;
                     shm_entry.length = length;
-                    remap_entries_[compute_remap_entries_key(target_id, entry.addr)] = shm_entry;
+                    remap_entries_[std::make_tuple(target_id, entry.addr)] = shm_entry;
                 } else if (output_buffer.size() == sizeof(CUmemFabricHandle) &&
                            use_fabric_mem_) {
                     CUmemFabricHandle export_handle;
@@ -451,7 +446,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     OpenedShmEntry shm_entry;
                     shm_entry.shm_addr = shm_addr;
                     shm_entry.length = length;
-                    remap_entries_[compute_remap_entries_key(target_id, entry.addr)] = shm_entry;
+                    remap_entries_[std::make_tuple(target_id, entry.addr)] = shm_entry;
 
 //                    LOG(ERROR) << "hi relocateSharedMemoryAddress "
 //                        << " shm_entry.shm_addr=" << shm_entry.shm_addr
@@ -463,7 +458,7 @@ int NvlinkTransport::relocateSharedMemoryAddress(uint64_t &dest_addr,
                     return -1;
                 }
             }
-            auto shm_addr = remap_entries_[compute_remap_entries_key(target_id, entry.addr)].shm_addr;
+            auto shm_addr = remap_entries_[std::make_tuple(target_id, entry.addr)].shm_addr;
             dest_addr = dest_addr - entry.addr + ((uint64_t)shm_addr);
 //            LOG(ERROR) << "hi NvlinkTransport::relocateSharedMemoryAddress END by branch-b "
 //                << " dest_addr=" << dest_addr
