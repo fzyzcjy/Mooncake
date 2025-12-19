@@ -21,9 +21,23 @@ void *mc_nvlink_malloc(ssize_t size, int device, cudaStream_t stream) {
     }
     prop.type = CU_MEM_ALLOCATION_TYPE_PINNED;
     prop.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
-    // NOTE MODIFIED
-    // prop.requestedHandleTypes = CU_MEM_HANDLE_TYPE_FABRIC;
     prop.location.id = currentDev;
+
+    {
+        int fabric_supported = 0;
+        CUresult result = cuDeviceGetAttribute(
+            &fabric_supported, CU_DEVICE_ATTRIBUTE_HANDLE_TYPE_FABRIC_SUPPORTED,
+            currentDev);
+        if (result != CUDA_SUCCESS) {
+            std::cerr << "cuDeviceGetAttribute (fabric) failed: " << result << "\n";
+            return nullptr;
+        }
+
+        if (fabric_supported) {
+            prop.requestedHandleTypes = CU_MEM_HANDLE_TYPE_FABRIC;
+        }
+    }
+
     result = cuDeviceGetAttribute(
         &flag, CU_DEVICE_ATTRIBUTE_GPU_DIRECT_RDMA_WITH_CUDA_VMM_SUPPORTED,
         currentDev);
