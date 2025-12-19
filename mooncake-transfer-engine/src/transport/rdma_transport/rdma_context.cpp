@@ -14,8 +14,10 @@
 
 #include "transport/rdma_transport/rdma_context.h"
 
+#include <execinfo.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <unistd.h>
 
 #include <atomic>
 #include <cassert>
@@ -32,6 +34,28 @@
 #include "transport/transport.h"
 
 namespace mooncake {
+
+static void print_backtrace() {
+    LOG(ERROR) << "=== py-spy dump (Python + Native) ===";
+    char cmd[256];
+    snprintf(cmd, sizeof(cmd), "py-spy dump --native --pid %d 2>&1", getpid());
+    int ret = system(cmd);
+    if (ret != 0) {
+        LOG(ERROR) << "py-spy dump failed or not available (exit code: " << ret << ")";
+    }
+
+    LOG(ERROR) << "=== C++ Native Backtrace ===";
+    void* callstack[128];
+    int frames = backtrace(callstack, 128);
+    char** symbols = backtrace_symbols(callstack, frames);
+    if (symbols) {
+        for (int i = 0; i < frames; ++i) {
+            LOG(ERROR) << symbols[i];
+        }
+        free(symbols);
+    }
+}
+
 static int isNullGid(union ibv_gid *gid) {
     for (int i = 0; i < 16; ++i) {
         if (gid->raw[i] != 0) return 0;
@@ -244,6 +268,7 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
             cuGetErrorString(result, &errStr);
             LOG(ERROR) << "Failed to retrieve dmabuf for " << (uintptr_t)addr
                        << " cuda error=" << errStr;
+            print_backtrace();
             return ERR_CONTEXT;
         }
         LOG(ERROR) << "hi registerMemoryRegionInternal"
