@@ -9,20 +9,14 @@ static CUresult cuMemCreateTryFabric(CUmemGenericAllocationHandle *handle,
                                      size_t size,
                                      CUmemAllocationProp *prop,
                                      unsigned long long flags) {
-    auto requestedHandleTypes =
-        static_cast<unsigned int>(prop->requestedHandleTypes);
-    if (requestedHandleTypes & CU_MEM_HANDLE_TYPE_FABRIC) {
-        CUresult err = cuMemCreate(handle, size, prop, flags);
-        if (err == CUDA_ERROR_NOT_PERMITTED ||
-            err == CUDA_ERROR_NOT_SUPPORTED) {
-            requestedHandleTypes &= ~CU_MEM_HANDLE_TYPE_FABRIC;
-            prop->requestedHandleTypes =
-                static_cast<CUmemAllocationHandleType>(requestedHandleTypes);
-            return cuMemCreate(handle, size, prop, flags);
-        }
-        return err;
+    CUresult err = cuMemCreate(handle, size, prop, flags);
+    if ((prop->requestedHandleTypes & CU_MEM_HANDLE_TYPE_FABRIC) &&
+        (err == CUDA_ERROR_NOT_PERMITTED || err == CUDA_ERROR_NOT_SUPPORTED)) {
+        prop->requestedHandleTypes = static_cast<CUmemAllocationHandleType>(
+            prop->requestedHandleTypes & ~CU_MEM_HANDLE_TYPE_FABRIC);
+        err = cuMemCreate(handle, size, prop, flags);
     }
-    return cuMemCreate(handle, size, prop, flags);
+    return err;
 }
 
 extern "C" {
