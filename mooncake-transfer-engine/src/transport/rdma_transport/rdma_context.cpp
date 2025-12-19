@@ -275,6 +275,18 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
             << " allocSize=" << allocSize
             ;
 
+        {
+            CUcontext ctx = nullptr;
+            CUresult r = cuCtxGetCurrent(&ctx);
+            if (r != CUDA_SUCCESS) {
+                const char* err;
+                cuGetErrorString(r, &err);
+                LOG(ERROR) << "hi registerMemoryRegionInternal cuCtxGetCurrent failed: " << err;
+                return ERR_CONTEXT;
+            }
+            LOG(ERROR) << "hi registerMemoryRegionInternal cuCtxGetCurrent =" << ctx;
+        }
+
         int dmabuf_fd;
         result = cuMemGetHandleForAddressRange(
             &dmabuf_fd, (CUdeviceptr)addr, allocSize,

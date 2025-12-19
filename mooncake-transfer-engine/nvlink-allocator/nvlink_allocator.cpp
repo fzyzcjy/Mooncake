@@ -82,6 +82,19 @@ void *mc_nvlink_malloc(ssize_t size, int device, cudaStream_t stream) {
         << " ptr=" << ptr
         << " ptr_dec=" << reinterpret_cast<uintptr_t>(ptr)
         << std::endl;
+
+    {
+        CUcontext ctx = nullptr;
+        CUresult r = cuCtxGetCurrent(&ctx);
+        if (r != CUDA_SUCCESS) {
+            const char* err;
+            cuGetErrorString(r, &err);
+            LOG(ERROR) << "hi mc_nvlink_malloc cuCtxGetCurrent failed: " << err;
+            return nullptr;
+        }
+        LOG(ERROR) << "hi mc_nvlink_malloc cuCtxGetCurrent =" << ctx;
+    }
+
     return ptr;
 }
 
