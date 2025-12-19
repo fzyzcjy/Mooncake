@@ -110,8 +110,15 @@ int main() {
         return 1;
     }
 
-    ssize_t size = 1024 * 1024;
     int device = 0;
+    cudaError_t cudaErr = cudaSetDevice(device);
+    if (cudaErr != cudaSuccess) {
+        std::cerr << "cudaSetDevice failed: " << cudaGetErrorString(cudaErr) << "\n";
+        return 1;
+    }
+    std::cout << "cudaSetDevice(" << device << ") succeeded\n";
+
+    ssize_t size = 1024 * 1024;
     cudaStream_t stream = nullptr;
 
     std::cout << "Calling mc_nvlink_malloc with size=" << size << ", device=" << device << "\n";
