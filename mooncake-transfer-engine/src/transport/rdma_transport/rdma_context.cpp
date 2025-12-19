@@ -203,6 +203,10 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
                       << "shrink it to " << globalConfig().max_mr_size;
         length = (size_t)globalConfig().max_mr_size;
     }
+    PLOG(ERROR) << "hi registerMemoryRegionInternal"
+        << " defined(WITH_NVIDIA_PEERMEM)=" << defined(WITH_NVIDIA_PEERMEM)
+        << " defined(USE_CUDA)=" << defined(USE_CUDA)
+        ;
 #if !defined(WITH_NVIDIA_PEERMEM) && defined(USE_CUDA)
     // Implement register memory in a way that does not assume the presence of
     // nvidia-peermem. If memory is on CPU call ibv_reg_mr() as usual. If memory
@@ -211,6 +215,9 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
     CUmemorytype memType;
     CUresult result = cuPointerGetAttribute(
         &memType, CU_POINTER_ATTRIBUTE_MEMORY_TYPE, (CUdeviceptr)addr);
+    PLOG(ERROR) << "hi registerMemoryRegionInternal"
+        << " memType=" << memType
+        ;
 
     // Register memory depending on whether memory is on host or GPU.
     if (result != CUDA_SUCCESS || memType == CU_MEMORYTYPE_HOST) {
@@ -231,6 +238,9 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
                        << " cuda error=" << errStr;
             return ERR_CONTEXT;
         }
+        PLOG(ERROR) << "hi registerMemoryRegionInternal"
+            << " dmabuf_fd=" << dmabuf_fd
+            ;
         mrMeta.addr = addr;
         mrMeta.mr = ibv_reg_dmabuf_mr(pd_, 0 /* offset */, length,
                                       (uintptr_t)addr, dmabuf_fd, access);
