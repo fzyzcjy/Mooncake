@@ -203,7 +203,7 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
                       << "shrink it to " << globalConfig().max_mr_size;
         length = (size_t)globalConfig().max_mr_size;
     }
-    PLOG(ERROR) << "hi registerMemoryRegionInternal"
+    LOG(ERROR) << "hi registerMemoryRegionInternal"
         #ifdef WITH_NVIDIA_PEERMEM
                     << " WITH_NVIDIA_PEERMEM=1"
         #else
@@ -223,7 +223,7 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
     CUmemorytype memType;
     CUresult result = cuPointerGetAttribute(
         &memType, CU_POINTER_ATTRIBUTE_MEMORY_TYPE, (CUdeviceptr)addr);
-    PLOG(ERROR) << "hi registerMemoryRegionInternal"
+    LOG(ERROR) << "hi registerMemoryRegionInternal"
         << " memType=" << memType
         ;
 
@@ -246,7 +246,7 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
                        << " cuda error=" << errStr;
             return ERR_CONTEXT;
         }
-        PLOG(ERROR) << "hi registerMemoryRegionInternal"
+        LOG(ERROR) << "hi registerMemoryRegionInternal"
             << " dmabuf_fd=" << dmabuf_fd
             ;
         mrMeta.addr = addr;
