@@ -285,6 +285,10 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
                 return ERR_CONTEXT;
             }
             LOG(ERROR) << "hi registerMemoryRegionInternal cuCtxGetCurrent =" << ctx;
+
+            CUdevice dev;
+            cuCtxGetDevice(&dev);
+            LOG(ERROR) << "hi registerMemoryRegionInternal cuCtxGetDevice =" << dev;
         }
 
         int dmabuf_fd;

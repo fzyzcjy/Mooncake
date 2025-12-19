@@ -93,6 +93,10 @@ void *mc_nvlink_malloc(ssize_t size, int device, cudaStream_t stream) {
             return nullptr;
         }
         LOG(ERROR) << "hi mc_nvlink_malloc cuCtxGetCurrent =" << ctx;
+
+        CUdevice dev;
+        cuCtxGetDevice(&dev);
+        LOG(ERROR) << "hi mc_nvlink_malloc cuCtxGetDevice =" << dev;
     }
 
     return ptr;
