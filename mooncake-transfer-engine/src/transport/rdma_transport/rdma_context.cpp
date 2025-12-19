@@ -228,6 +228,10 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
         length = (size_t)globalConfig().max_mr_size;
     }
     LOG(ERROR) << "hi registerMemoryRegionInternal"
+                    << " addr=" << addr
+                    << " addr_dec=" << reinterpret_cast<uintptr_t>(addr)
+                    << " length=" << length
+                    << " access=" << access
         #ifdef WITH_NVIDIA_PEERMEM
                     << " WITH_NVIDIA_PEERMEM=1"
         #else
