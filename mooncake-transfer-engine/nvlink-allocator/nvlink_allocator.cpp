@@ -20,7 +20,8 @@ void *mc_nvlink_malloc(ssize_t size, int device, cudaStream_t stream) {
     }
     prop.type = CU_MEM_ALLOCATION_TYPE_PINNED;
     prop.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
-    prop.requestedHandleTypes = CU_MEM_HANDLE_TYPE_FABRIC;
+    // NOTE MODIFIED
+    // prop.requestedHandleTypes = CU_MEM_HANDLE_TYPE_FABRIC;
     prop.location.id = currentDev;
     result = cuDeviceGetAttribute(
         &flag, CU_DEVICE_ATTRIBUTE_GPU_DIRECT_RDMA_WITH_CUDA_VMM_SUPPORTED,
