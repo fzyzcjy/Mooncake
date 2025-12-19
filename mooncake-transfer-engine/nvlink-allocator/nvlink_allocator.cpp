@@ -74,10 +74,22 @@ void *mc_nvlink_malloc(ssize_t size, int device, cudaStream_t stream) {
         cuMemRelease(handle);
         return nullptr;
     }
+    std::cerr << "hi nvlink_allocator.cpp::mc_nvlink_malloc END "
+        << " size=" << size
+        << " device=" << device
+        << " stream=" << stream
+        << " ptr=" << ptr
+        ;
     return ptr;
 }
 
 void mc_nvlink_free(void *ptr, ssize_t ssize, int device, cudaStream_t stream) {
+    std::cerr << "hi nvlink_allocator.cpp::mc_nvlink_free START "
+        << " ssize=" << ssize
+        << " device=" << device
+        << " stream=" << stream
+        << " ptr=" << ptr
+        ;
     CUmemGenericAllocationHandle handle;
     size_t size = 0;
     if (!ptr) return;
