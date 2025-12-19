@@ -32,6 +32,19 @@ int main() {
 
     if (ptr) {
         std::cout << "mc_nvlink_malloc succeeded, ptr=" << ptr << "\n";
+
+        int dmabuf_fd;
+        CUresult result = cuMemGetHandleForAddressRange(
+            &dmabuf_fd, (CUdeviceptr)ptr, size,
+            CU_MEM_RANGE_HANDLE_TYPE_DMA_BUF_FD, 0);
+        if (result != CUDA_SUCCESS) {
+            const char *errStr;
+            cuGetErrorString(result, &errStr);
+            std::cerr << "Failed to retrieve dmabuf for " << (uintptr_t)addr
+                       << " cuda error=" << errStr;
+            return 1;
+        }
+
         std::cout << "Calling mc_nvlink_free\n";
         mc_nvlink_free(ptr, size, device, stream);
         std::cout << "mc_nvlink_free succeeded\n";
