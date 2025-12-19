@@ -2,6 +2,7 @@
 #include <cuda_runtime_api.h>
 #include <sys/types.h>
 
+#include <cstdint>
 #include <iostream>
 
 extern "C" {
@@ -79,7 +80,8 @@ void *mc_nvlink_malloc(ssize_t size, int device, cudaStream_t stream) {
         << " device=" << device
         << " stream=" << stream
         << " ptr=" << ptr
-        ;
+        << " ptr_dec=" << reinterpret_cast<uintptr_t>(ptr)
+        << std::endl;
     return ptr;
 }
 
@@ -89,7 +91,8 @@ void mc_nvlink_free(void *ptr, ssize_t ssize, int device, cudaStream_t stream) {
         << " device=" << device
         << " stream=" << stream
         << " ptr=" << ptr
-        ;
+        << " ptr_dec=" << reinterpret_cast<uintptr_t>(ptr)
+        << std::endl;
     CUmemGenericAllocationHandle handle;
     size_t size = 0;
     if (!ptr) return;
