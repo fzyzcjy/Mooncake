@@ -4,6 +4,27 @@
 
 #include <iostream>
 
+// ref: https://github.com/NVIDIA/nccl/blob/3ea7eedf3b9b94f1d9f99f4e55536dfcbd23c1ca/src/allocator.cc#L52-L67
+static CUresult cuMemCreateTryFabric(CUmemGenericAllocationHandle *handle,
+                                     size_t size,
+                                     CUmemAllocationProp *prop,
+                                     unsigned long long flags) {
+    auto requestedHandleTypes =
+        static_cast<unsigned int>(prop->requestedHandleTypes);
+    if (requestedHandleTypes & CU_MEM_HANDLE_TYPE_FABRIC) {
+        CUresult err = cuMemCreate(handle, size, prop, flags);
+        if (err == CUDA_ERROR_NOT_PERMITTED ||
+            err == CUDA_ERROR_NOT_SUPPORTED) {
+            requestedHandleTypes &= ~CU_MEM_HANDLE_TYPE_FABRIC;
+            prop->requestedHandleTypes =
+                static_cast<CUmemAllocationHandleType>(requestedHandleTypes);
+            return cuMemCreate(handle, size, prop, flags);
+        }
+        return err;
+    }
+    return cuMemCreate(handle, size, prop, flags);
+}
+
 extern "C" {
 void *mc_nvlink_malloc(ssize_t size, int device, cudaStream_t stream) {
     size_t granularity = 0;
@@ -51,9 +72,9 @@ void *mc_nvlink_malloc(ssize_t size, int device, cudaStream_t stream) {
     // fix size
     size = (size + granularity - 1) & ~(granularity - 1);
     if (size == 0) size = granularity;
-    result = cuMemCreate(&handle, size, &prop, 0);
+    result = cuMemCreateTryFabric(&handle, size, &prop, 0);
     if (result != CUDA_SUCCESS) {
-        std::cerr << "cuMemCreate failed: " << result;
+        std::cerr << "cuMemCreateTryFabric failed: " << result;
         return nullptr;
     }
     result = cuMemAddressReserve((CUdeviceptr *)&ptr, size, granularity, 0, 0);
