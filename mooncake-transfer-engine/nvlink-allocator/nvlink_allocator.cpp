@@ -2,7 +2,6 @@
 #include <cuda_runtime_api.h>
 #include <sys/types.h>
 
-#include <cstdint>
 #include <iostream>
 
 extern "C" {
