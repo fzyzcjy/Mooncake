@@ -14,10 +14,8 @@
 
 #include "transport/rdma_transport/rdma_context.h"
 
-#include <execinfo.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
-#include <unistd.h>
 
 #include <atomic>
 #include <cassert>
@@ -34,28 +32,6 @@
 #include "transport/transport.h"
 
 namespace mooncake {
-
-static void print_backtrace() {
-    LOG(ERROR) << "=== py-spy dump (Python + Native) ===";
-    char cmd[256];
-    snprintf(cmd, sizeof(cmd), "py-spy dump --native --pid %d 2>&1", getpid());
-    int ret = system(cmd);
-    if (ret != 0) {
-        LOG(ERROR) << "py-spy dump failed or not available (exit code: " << ret << ")";
-    }
-
-    LOG(ERROR) << "=== C++ Native Backtrace ===";
-    void* callstack[128];
-    int frames = backtrace(callstack, 128);
-    char** symbols = backtrace_symbols(callstack, frames);
-    if (symbols) {
-        for (int i = 0; i < frames; ++i) {
-            LOG(ERROR) << symbols[i];
-        }
-        free(symbols);
-    }
-}
-
 static int isNullGid(union ibv_gid *gid) {
     for (int i = 0; i < 16; ++i) {
         if (gid->raw[i] != 0) return 0;
@@ -227,22 +203,6 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
                       << "shrink it to " << globalConfig().max_mr_size;
         length = (size_t)globalConfig().max_mr_size;
     }
-    LOG(ERROR) << "hi registerMemoryRegionInternal"
-                    << " addr=" << addr
-                    << " addr_dec=" << reinterpret_cast<uintptr_t>(addr)
-                    << " length=" << length
-                    << " access=" << access
-        #ifdef WITH_NVIDIA_PEERMEM
-                    << " WITH_NVIDIA_PEERMEM=1"
-        #else
-                    << " WITH_NVIDIA_PEERMEM=0"
-        #endif
-        #ifdef USE_CUDA
-                    << " USE_CUDA=1"
-        #else
-                    << " USE_CUDA=0"
-        #endif
-        ;
 #if !defined(WITH_NVIDIA_PEERMEM) && defined(USE_CUDA)
     // Implement register memory in a way that does not assume the presence of
     // nvidia-peermem. If memory is on CPU call ibv_reg_mr() as usual. If memory
@@ -251,9 +211,6 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
     CUmemorytype memType;
     CUresult result = cuPointerGetAttribute(
         &memType, CU_POINTER_ATTRIBUTE_MEMORY_TYPE, (CUdeviceptr)addr);
-    LOG(ERROR) << "hi registerMemoryRegionInternal"
-        << " memType=" << memType
-        ;
 
     // Register memory depending on whether memory is on host or GPU.
     if (result != CUDA_SUCCESS || memType == CU_MEMORYTYPE_HOST) {
@@ -268,27 +225,7 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
             cuGetErrorString(result, &errStr);
             LOG(ERROR) << "Failed to call cuPointerGetAttribute for " << (uintptr_t)addr
                        << " cuda error=" << errStr;
-            print_backtrace();
             return ERR_CONTEXT;
-        }
-        LOG(ERROR) << "hi registerMemoryRegionInternal"
-            << " allocSize=" << allocSize
-            ;
-
-        {
-            CUcontext ctx = nullptr;
-            CUresult r = cuCtxGetCurrent(&ctx);
-            if (r != CUDA_SUCCESS) {
-                const char* err;
-                cuGetErrorString(r, &err);
-                LOG(ERROR) << "hi registerMemoryRegionInternal cuCtxGetCurrent failed: " << err;
-                return ERR_CONTEXT;
-            }
-            LOG(ERROR) << "hi registerMemoryRegionInternal cuCtxGetCurrent =" << ctx;
-
-            CUdevice dev;
-            cuCtxGetDevice(&dev);
-            LOG(ERROR) << "hi registerMemoryRegionInternal cuCtxGetDevice =" << dev;
         }
 
         int dmabuf_fd;
@@ -300,12 +237,8 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
             cuGetErrorString(result, &errStr);
             LOG(ERROR) << "Failed to retrieve dmabuf for " << (uintptr_t)addr
                        << " cuda error=" << errStr;
-            print_backtrace();
             return ERR_CONTEXT;
         }
-        LOG(ERROR) << "hi registerMemoryRegionInternal"
-            << " dmabuf_fd=" << dmabuf_fd
-            ;
         mrMeta.addr = addr;
         mrMeta.mr = ibv_reg_dmabuf_mr(pd_, 0 /* offset */, length,
                                       (uintptr_t)addr, dmabuf_fd, access);
