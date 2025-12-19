@@ -41,9 +41,10 @@ int main() {
             const char *errStr;
             cuGetErrorString(result, &errStr);
             std::cerr << "Failed to retrieve dmabuf "
-                       << " cuda error=" << errStr;
+                       << " cuda error=" << errStr << std::endl;
             return 1;
         }
+        std::cout << "dmabuf_fd=" << dmabuf_fd << std::endl;
 
         std::cout << "Calling mc_nvlink_free\n";
         mc_nvlink_free(ptr, size, device, stream);
