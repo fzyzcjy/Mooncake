@@ -4,10 +4,10 @@
 
 #include <iostream>
 
-// ref: https://github.com/NVIDIA/nccl/blob/3ea7eedf3b9b94f1d9f99f4e55536dfcbd23c1ca/src/allocator.cc#L52-L67
+// ref:
+// https://github.com/NVIDIA/nccl/blob/3ea7eedf3b9b94f1d9f99f4e55536dfcbd23c1ca/src/allocator.cc#L52-L67
 static CUresult cuMemCreateTryFabric(CUmemGenericAllocationHandle *handle,
-                                     size_t size,
-                                     CUmemAllocationProp *prop,
+                                     size_t size, CUmemAllocationProp *prop,
                                      unsigned long long flags) {
     CUresult err = cuMemCreate(handle, size, prop, flags);
     if ((prop->requestedHandleTypes & CU_MEM_HANDLE_TYPE_FABRIC) &&
