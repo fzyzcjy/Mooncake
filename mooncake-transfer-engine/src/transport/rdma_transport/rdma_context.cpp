@@ -204,8 +204,16 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
         length = (size_t)globalConfig().max_mr_size;
     }
     PLOG(ERROR) << "hi registerMemoryRegionInternal"
-        << " defined(WITH_NVIDIA_PEERMEM)=" << defined(WITH_NVIDIA_PEERMEM)
-        << " defined(USE_CUDA)=" << defined(USE_CUDA)
+        #ifdef WITH_NVIDIA_PEERMEM
+                    << " WITH_NVIDIA_PEERMEM=1"
+        #else
+                    << " WITH_NVIDIA_PEERMEM=0"
+        #endif
+        #ifdef USE_CUDA
+                    << " USE_CUDA=1"
+        #else
+                    << " USE_CUDA=0"
+        #endif
         ;
 #if !defined(WITH_NVIDIA_PEERMEM) && defined(USE_CUDA)
     // Implement register memory in a way that does not assume the presence of
