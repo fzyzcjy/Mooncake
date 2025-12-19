@@ -271,6 +271,9 @@ int RdmaContext::registerMemoryRegionInternal(void *addr, size_t length,
             print_backtrace();
             return ERR_CONTEXT;
         }
+        LOG(ERROR) << "hi registerMemoryRegionInternal"
+            << " allocSize=" << allocSize
+            ;
 
         int dmabuf_fd;
         result = cuMemGetHandleForAddressRange(
