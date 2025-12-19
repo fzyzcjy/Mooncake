@@ -40,7 +40,7 @@ int main() {
         if (result != CUDA_SUCCESS) {
             const char *errStr;
             cuGetErrorString(result, &errStr);
-            std::cerr << "Failed to retrieve dmabuf for " << (uintptr_t)addr
+            std::cerr << "Failed to retrieve dmabuf "
                        << " cuda error=" << errStr;
             return 1;
         }
