@@ -239,15 +239,15 @@ int RdmaTransport::allocateLocalSegmentID() {
 int RdmaTransport::registerLocalMemoryBatch(
     const std::vector<RdmaTransport::BufferEntry> &buffer_list,
     const std::string &location) {
-
-    // When peermem is disabled, need `cuMemGetHandleForAddressRange` which needs current CU context
+    // When peermem is disabled, need `cuMemGetHandleForAddressRange` which
+    // needs current CU context
 #if !defined(WITH_NVIDIA_PEERMEM) && defined(USE_CUDA)
     for (auto &buffer : buffer_list) {
         int ret = registerLocalMemory(buffer.addr, buffer.length, location,
-                                        true, false);
+                                      true, false);
         if (ret) {
             LOG(WARNING) << "RdmaTransport: Failed to register memory: addr "
-                            << buffer.addr << " length " << buffer.length;
+                         << buffer.addr << " length " << buffer.length;
         }
     }
 #else
@@ -256,15 +256,15 @@ int RdmaTransport::registerLocalMemoryBatch(
         results.emplace_back(
             std::async(std::launch::async, [this, buffer, location]() -> int {
                 return registerLocalMemory(buffer.addr, buffer.length, location,
-                                            true, false);
+                                           true, false);
             }));
     }
 
     for (size_t i = 0; i < buffer_list.size(); ++i) {
         if (results[i].get()) {
             LOG(WARNING) << "RdmaTransport: Failed to register memory: addr "
-                            << buffer_list[i].addr << " length "
-                            << buffer_list[i].length;
+                         << buffer_list[i].addr << " length "
+                         << buffer_list[i].length;
         }
     }
 #endif
